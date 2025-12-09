@@ -1,0 +1,48 @@
+### 健康检查接口
+GET http://localhost:8888/health
+Accept: application/json
+
+### 欢迎接口
+GET http://localhost:8888/hello
+Accept: application/json
+
+### 个性化欢迎接口 - 带参数
+GET http://localhost:8888/welcome?name=张三
+Accept: application/json
+
+### 个性化欢迎接口 - 不带参数
+GET http://localhost:8888/welcome
+Accept: application/json
+
+### 服务状态概览接口
+GET http://localhost:8888/status
+Accept: application/json
+
+### 测试所有接口的批量请求
+# @name allEndpoints
+GET http://localhost:8888/health
+
+###
+GET http://localhost:8888/hello
+
+###
+GET http://localhost:8888/status
+
+### 带错误路径的测试（预期404）
+GET http://localhost:8888/not-found
+Accept: application/json
+
+### 测试不同的Content-Type
+GET http://localhost:8888/health
+Content-Type: application/json
+User-Agent: IntelliJ-HTTP-Client
+
+### 性能测试 - 多次请求健康检查
+# @name healthCheckMulti
+GET http://localhost:8888/health
+
+###
+GET http://localhost:8888/health
+
+###
+GET http://localhost:8888/health

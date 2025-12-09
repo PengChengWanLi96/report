@@ -1,0 +1,22 @@
+# IntelliJ IDEA 配置[citation:9]
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# 忽略代码运行产生的文件[citation:9]
+*.log
+temp/
+
+# Maven 构建输出目录
+target/
+out/
+
+# Gradle 构建输出目录
+.gradle/
+build/
+
+# 本地开发环境的配置文件（通常包含密码等敏感信息）[citation:10]
+application-local.properties
+application-dev.yml
+*.local
