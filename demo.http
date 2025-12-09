@@ -18,15 +18,6 @@ Accept: application/json
 GET http://localhost:8888/status
 Accept: application/json
 
-### 测试所有接口的批量请求
-# @name allEndpoints
-GET http://localhost:8888/health
-
-###
-GET http://localhost:8888/hello
-
-###
-GET http://localhost:8888/status
 
 ### 带错误路径的测试（预期404）
 GET http://localhost:8888/not-found
@@ -36,13 +27,3 @@ Accept: application/json
 GET http://localhost:8888/health
 Content-Type: application/json
 User-Agent: IntelliJ-HTTP-Client
-
-### 性能测试 - 多次请求健康检查
-# @name healthCheckMulti
-GET http://localhost:8888/health
-
-###
-GET http://localhost:8888/health
-
-###
-GET http://localhost:8888/health
