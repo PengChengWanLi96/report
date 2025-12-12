@@ -3,6 +3,7 @@ package com.fpj.report.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.fpj.report.domain.MedicalIndicator;
 import com.fpj.report.service.dto.MedicalIndicatorAddDTO;
+import com.fpj.report.service.dto.MedicalIndicatorQueryDTO;
 import com.fpj.report.service.dto.MedicalIndicatorUpdateDTO;
 import com.fpj.report.service.vo.MedicalIndicatorVO;
 import java.util.List;
@@ -37,7 +38,7 @@ public interface MedicalIndicatorService  extends IService<MedicalIndicator> {
     /**
      * 查询所有医疗指标列表
      */
-    List<MedicalIndicatorVO> getAllMedicalIndicators();
+    List<MedicalIndicatorVO> getAllMedicalIndicators(MedicalIndicatorQueryDTO queryDTO);
 
     /**
      * 根据检查项目查询指标列表

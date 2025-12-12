@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fpj.report.domain.MedicalIndicator;
 import com.fpj.report.repository.MedicalIndicatorMapper;
 import com.fpj.report.service.dto.MedicalIndicatorAddDTO;
+import com.fpj.report.service.dto.MedicalIndicatorQueryDTO;
 import com.fpj.report.service.dto.MedicalIndicatorUpdateDTO;
 import com.fpj.report.service.vo.MedicalIndicatorVO;
 import java.time.LocalDate;
@@ -139,11 +140,34 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
     }
 
     @Override
-    public List<MedicalIndicatorVO> getAllMedicalIndicators() {
+    public List<MedicalIndicatorVO> getAllMedicalIndicators(MedicalIndicatorQueryDTO queryDTO) {
         log.info("查询所有医疗指标列表");
 
         try {
             LambdaQueryWrapper<MedicalIndicator> queryWrapper = new LambdaQueryWrapper<>();
+            queryWrapper.eq(StringUtils.hasText(queryDTO.getCheckGroup()),
+                    MedicalIndicator::getCheckGroup, queryDTO.getCheckGroup());
+            queryWrapper.eq(StringUtils.hasText(queryDTO.getLabIndicator()),
+                    MedicalIndicator::getLabIndicator, queryDTO.getLabIndicator());
+
+            // MyBatis-Plus推荐的、类型安全的标准操作
+            if (StringUtils.hasText(queryDTO.getLabIndicatorLike())) {
+                queryWrapper.like(MedicalIndicator::getLabIndicator, queryDTO.getLabIndicatorLike().toLowerCase());
+            }
+
+
+//            //高度灵活的终极手段，用于处理标准API无法实现的复杂SQL逻辑
+//            if (StringUtils.hasText(queryDTO.getLabIndicatorLike())) {
+//                // 使用 apply 方法应用自定义的 SQL 条件片段
+//                queryWrapper.apply("LOWER(lab_indicator) LIKE LOWER({0})",
+//                        "%" + queryDTO.getLabIndicatorLike() + "%");
+//            }
+
+            if (queryDTO.getStartDate() != null && queryDTO.getEndDate() != null) {
+                queryWrapper.ge(MedicalIndicator::getCheckDate, queryDTO.getStartDate())
+                        .le(MedicalIndicator::getCheckDate, queryDTO.getEndDate());
+            }
+
             queryWrapper.orderByDesc(MedicalIndicator::getCreateTime);
 
             List<MedicalIndicator> indicators = this.list(queryWrapper);

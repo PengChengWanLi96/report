@@ -4,6 +4,7 @@ package com.fpj.report.controller;
 import com.fpj.report.common.ResultVO;
 import com.fpj.report.service.MedicalIndicatorService;
 import com.fpj.report.service.dto.MedicalIndicatorAddDTO;
+import com.fpj.report.service.dto.MedicalIndicatorQueryDTO;
 import com.fpj.report.service.dto.MedicalIndicatorUpdateDTO;
 import com.fpj.report.service.vo.MedicalIndicatorVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -80,10 +81,10 @@ public class MedicalIndicatorController {
 
     @GetMapping
     @Operation(summary = "查询指标列表", description = "获取所有医疗检查指标的列表")
-    public ResponseEntity<ResultVO<List<MedicalIndicatorVO>>> getAllMedicalIndicators() {
+    public ResponseEntity<ResultVO<List<MedicalIndicatorVO>>> getAllMedicalIndicators(MedicalIndicatorQueryDTO queryDTO) {
         log.info("查询所有医疗指标列表接口被调用");
 
-        List<MedicalIndicatorVO> indicators = medicalIndicatorService.getAllMedicalIndicators();
+        List<MedicalIndicatorVO> indicators = medicalIndicatorService.getAllMedicalIndicators(queryDTO);
         return ResponseEntity.ok(ResultVO.success("查询成功", indicators));
     }
 
