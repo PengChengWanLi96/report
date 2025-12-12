@@ -8,6 +8,7 @@ import com.fpj.report.repository.MedicalIndicatorMapper;
 import com.fpj.report.service.dto.MedicalIndicatorAddDTO;
 import com.fpj.report.service.dto.MedicalIndicatorUpdateDTO;
 import com.fpj.report.service.vo.MedicalIndicatorVO;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,8 +38,14 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
             }
 
             // 设置创建和修改时间
-            indicator.setCreateTime(LocalDateTime.now());
-            indicator.setUpdateTime(LocalDateTime.now());
+            LocalDateTime now = LocalDateTime.now();
+            indicator.setCreateTime(now);
+            indicator.setUpdateTime(now);
+
+            // 设置检查日期
+            if (addDTO.getCheckDate() == null) {
+                indicator.setCheckDate(LocalDate.now());
+            }
 
             return this.save(indicator);
         } catch (Exception e) {

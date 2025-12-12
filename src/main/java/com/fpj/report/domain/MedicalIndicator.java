@@ -1,6 +1,7 @@
 package com.fpj.report.domain;
 
 import com.baomidou.mybatisplus.annotation.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -91,4 +92,10 @@ public class MedicalIndicator {
     @TableLogic
     @TableField("deleted")
     private Integer deleted;
+
+    /**
+     * 检查日期
+     */
+    @TableField(value = "check_date")
+    private LocalDate checkDate;
 }

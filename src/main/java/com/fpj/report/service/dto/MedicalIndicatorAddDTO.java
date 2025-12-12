@@ -3,6 +3,7 @@ package com.fpj.report.service.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import lombok.Data;
 
 @Data
@@ -42,4 +43,7 @@ public class MedicalIndicatorAddDTO {
 
     @Schema(description = "创建人", example = "admin")
     private String createdBy;
+
+    @Schema(description = "检查日期", example = "2025-12-12")
+    private LocalDate checkDate;
 }

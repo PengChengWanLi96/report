@@ -1,8 +1,9 @@
 package com.fpj.report.service.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Data;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import lombok.Data;
 
 @Data
 @Schema(description = "医疗指标VO")
@@ -46,4 +47,7 @@ public class MedicalIndicatorVO {
 
     @Schema(description = "修改时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "检查日期", example = "2025-12-12")
+    private LocalDate checkDate;
 }
