@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>动态监测数据</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .search-section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            margin-bottom: 10px;
+        }
+        .form-group {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 36px;
+            vertical-align: bottom;
+        }
+        .search-btn:hover {
+            background-color: #45a049;
+        }
+        .report-section {
+            margin-bottom: 30px;
+        }
+        .section-title {
+            background-color: #e8f5e9;
+            padding: 10px 15px;
+            border-left: 4px solid #4CAF50;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        .normal {
+            color: green;
+        }
+        .abnormal {
+            color: red;
+            font-weight: bold;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .back-link {
+            margin-bottom: 15px;
+        }
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="back-link">
+        <a href="home.html">← 返回医疗检验报告</a>
+    </div>
+
+    <h1>动态监测数据</h1>
+
+    <!-- 查询条件表单 -->
+    <div class="search-section">
+        <h3>查询条件</h3>
+        <form id="searchForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="checkGroup">检查项目:</label>
+                    <input type="text" id="checkGroup" name="checkGroup" placeholder="请输入检查项目">
+                </div>
+
+                <div class="form-group">
+                    <label for="labIndicator">指标名称:</label>
+                    <input type="text" id="labIndicator" name="labIndicator" placeholder="请输入指标名称">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startDate">开始日期:</label>
+                    <input type="date" id="startDate" name="startDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">结束日期:</label>
+                    <input type="date" id="endDate" name="endDate">
+                </div>
+
+                <button type="button" class="search-btn" onclick="searchReports()">查询</button>
+                <button type="button" class="search-btn" onclick="resetForm()">重置</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 动态数据区域 -->
+    <div class="report-section">
+        <div class="section-title">监测数据列表</div>
+        <div id="dynamic-reports">
+            <div class="loading">加载中...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 页面加载完成后自动查询数据
+    document.addEventListener('DOMContentLoaded', function() {
+        searchReports();
+    });
+
+    // 查询报告数据
+    async function searchReports() {
+        try {
+            // 显示加载状态
+            document.getElementById('dynamic-reports').innerHTML = '<div class="loading">加载中...</div>';
+
+            // 获取表单数据
+            const formData = new FormData(document.getElementById('searchForm'));
+            const params = new URLSearchParams();
+
+            // 构造查询参数
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+
+            // 构造完整的URL
+            let url = '/api/medical_indicators';
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            // 发送请求到后端接口
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // 检查响应结构
+            if (result.code === 200) {
+                renderReportList(result.data);
+            } else {
+                throw new Error(result.message || '查询失败');
+            }
+        } catch (error) {
+            console.error('获取报告数据失败:', error);
+            document.getElementById('dynamic-reports').innerHTML =
+                `<div class="error">数据加载失败: ${error.message || '未知错误'}</div>
+                 <div style="text-align: center; margin-top: 10px;">
+                     <button class="search-btn" onclick="searchReports()">重新加载</button>
+                 </div>`;
+        }
+    }
+
+    // 渲染报告列表
+    function renderReportList(data) {
+        const container = document.getElementById('dynamic-reports');
+
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div class="loading">暂无数据</div>';
+            return;
+        }
+
+        // 创建表格HTML
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>检查项目</th>
+                        <th>指标名称</th>
+                        <th>检测结果</th>
+                        <th>单位</th>
+                        <th>参考范围</th>
+                        <th>状态</th>
+                        <th>检查日期</th>
+                        <th>创建时间</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        data.forEach(item => {
+            html += `
+                <tr>
+                    <td>${item.checkGroup || ''}</td>
+                    <td>${item.labIndicator || ''}</td>
+                    <td>${item.resultValue !== undefined ? item.resultValue : ''}</td>
+                    <td>${item.unit || ''}</td>
+                    <td>${item.referenceRange || ''}</td>
+                    <td class="${item.resultStatus === '正常' ? 'normal' : 'abnormal'}">
+                        ${item.resultStatus || ''}
+                    </td>
+                    <td>${item.checkDate || ''}</td>
+                    <td>${item.createTime ? item.createTime.substring(0, 19).replace('T', ' ') : ''}</td>
+                </tr>
+            `;
+        });
+
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        container.innerHTML = html;
+    }
+
+    // 重置表单
+    function resetForm() {
+        document.getElementById('searchForm').reset();
+        // 重新查询所有数据
+        searchReports();
+    }
+</script>
+</body>
+</html>

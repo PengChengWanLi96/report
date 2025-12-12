@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>图表数据分析</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .search-section {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            margin-bottom: 10px;
+        }
+        .form-group {
+            display: inline-block;
+            margin-right: 15px;
+            margin-bottom: 10px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group select {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .search-btn {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            height: 36px;
+            vertical-align: bottom;
+        }
+        .search-btn:hover {
+            background-color: #45a049;
+        }
+        .chart-controls {
+            margin: 20px 0;
+            text-align: center;
+        }
+        .chart-btn {
+            background-color: #2196F3;
+            color: white;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 0 5px;
+        }
+        .chart-btn.active {
+            background-color: #0b7dda;
+            font-weight: bold;
+        }
+        .chart-btn:hover {
+            background-color: #0b7dda;
+        }
+        .chart-container {
+            position: relative;
+            height: 500px;
+            margin: 20px 0;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-style: italic;
+            color: #666;
+        }
+        .error {
+            text-align: center;
+            padding: 20px;
+            color: #d32f2f;
+            background-color: #ffebee;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .back-link {
+            margin-bottom: 15px;
+        }
+        .back-link a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+        .back-link a:hover {
+            text-decoration: underline;
+        }
+        .no-data {
+            text-align: center;
+            padding: 50px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="back-link">
+        <a href="home.html">← 返回医疗检验报告</a>
+    </div>
+
+    <h1>图表数据分析</h1>
+
+    <!-- 查询条件表单 -->
+    <div class="search-section">
+        <h3>查询条件</h3>
+        <form id="searchForm">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="checkGroup">检查项目:</label>
+                    <input type="text" id="checkGroup" name="checkGroup" placeholder="请输入检查项目">
+                </div>
+
+                <div class="form-group">
+                    <label for="labIndicator">指标名称*:</label>
+                    <input type="text" id="labIndicator" name="labIndicator" placeholder="请输入指标名称" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="startDate">开始日期:</label>
+                    <input type="date" id="startDate" name="startDate">
+                </div>
+
+                <div class="form-group">
+                    <label for="endDate">结束日期:</label>
+                    <input type="date" id="endDate" name="endDate">
+                </div>
+
+                <button type="button" class="search-btn" onclick="searchReports()">查询</button>
+                <button type="button" class="search-btn" onclick="resetForm()">重置</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 图表控制按钮 -->
+    <div class="chart-controls">
+        <button class="chart-btn active" onclick="changeChartType('line')">折线图</button>
+        <button class="chart-btn" onclick="changeChartType('bar')">柱状图</button>
+        <button class="chart-btn" onclick="changeChartType('horizontalBar')">条形图</button>
+    </div>
+
+    <!-- 图表容器 -->
+    <div class="chart-container">
+        <canvas id="reportChart"></canvas>
+    </div>
+</div>
+
+<script>
+    let currentChart = null;
+    let currentChartType = 'line';
+
+    // 页面加载完成后自动查询数据
+    document.addEventListener('DOMContentLoaded', function() {
+        // 设置默认日期范围（最近30天）
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+        document.getElementById('endDate').valueAsDate = today;
+    });
+
+    // 查询报告数据
+    async function searchReports() {
+        try {
+            // 获取表单数据
+            const formData = new FormData(document.getElementById('searchForm'));
+            const params = new URLSearchParams();
+
+            // 构造查询参数
+            for (let [key, value] of formData.entries()) {
+                if (value) {
+                    params.append(key, value);
+                }
+            }
+
+            // 检查是否输入了指标名称
+            if (!formData.get('labIndicator')) {
+                alert('请输入指标名称');
+                return;
+            }
+
+            // 构造完整的URL
+            let url = '/api/medical_indicators';
+            if (params.toString()) {
+                url += '?' + params.toString();
+            }
+
+            // 发送请求到后端接口
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+
+            // 检查响应结构
+            if (result.code === 200) {
+                renderChart(result.data);
+            } else {
+                throw new Error(result.message || '查询失败');
+            }
+        } catch (error) {
+            console.error('获取报告数据失败:', error);
+            alert(`数据加载失败: ${error.message || '未知错误'}`);
+        }
+    }
+
+    // 渲染图表
+    function renderChart(data) {
+        const ctx = document.getElementById('reportChart').getContext('2d');
+
+        // 销毁之前的图表实例
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        if (!data || data.length === 0) {
+            ctx.canvas.parentNode.innerHTML = '<div class="no-data">暂无数据</div>';
+            return;
+        }
+
+        // 重新创建canvas
+        ctx.canvas.parentNode.innerHTML = '<canvas id="reportChart"></canvas>';
+        const newCtx = document.getElementById('reportChart').getContext('2d');
+
+        // 按检查日期排序
+        data.sort((a, b) => new Date(a.checkDate) - new Date(b.checkDate));
+
+        // 提取图表数据
+        const labels = data.map(item => item.checkDate);
+        const resultValues = data.map(item => item.resultValue);
+        const minValues = data.map(item => item.referenceMin);
+        const maxValues = data.map(item => item.referenceMax);
+        const unit = data[0]?.unit || '';
+
+        // 创建图表
+        currentChart = new Chart(newCtx, {
+            type: currentChartType === 'horizontalBar' ? 'bar' : currentChartType,
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: '检测结果',
+                        data: resultValues,
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderWidth: 2,
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: '参考最小值',
+                        data: minValues,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    },
+                    {
+                        label: '参考最大值',
+                        data: maxValues,
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                indexAxis: currentChartType === 'horizontalBar' ? 'y' : 'x',
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: currentChartType === 'horizontalBar' ? '数值' : '检查日期'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: currentChartType === 'horizontalBar' ? '检查日期' : `数值 (${unit})`
+                        }
+                    }
+                },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `${data[0]?.labIndicator || '检测指标'}趋势分析`
+                    },
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+    }
+
+    // 切换图表类型
+    function changeChartType(type) {
+        // 更新按钮状态
+        document.querySelectorAll('.chart-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        event.target.classList.add('active');
+
+        // 更新图表类型
+        currentChartType = type;
+
+        // 重新渲染图表（如果有数据）
+        if (currentChart) {
+            searchReports();
+        }
+    }
+
+    // 重置表单
+    function resetForm() {
+        document.getElementById('searchForm').reset();
+        // 设置默认日期范围
+        const today = new Date();
+        const thirtyDaysAgo = new Date(today);
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
+        document.getElementById('endDate').valueAsDate = today;
+    }
+</script>
+</body>
+</html>
