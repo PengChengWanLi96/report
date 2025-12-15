@@ -41,6 +41,11 @@ public class OcrUtil {
      * @return Boolean 是否包含文本内容
      */
     public static Boolean isPdfText(String filePath) {
+        File file = new File(filePath);
+        if (!file.exists()) {
+            System.out.println("文件不存在");
+            return Boolean.FALSE;
+        }
         try (PDDocument doc = PDDocument.load(new File(filePath))) {
             String text = new PDFTextStripper().getText(doc);
             if (text.trim().isEmpty()) {
