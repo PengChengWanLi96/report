@@ -73,6 +73,20 @@
           <groupId>org.springframework.boot</groupId>
           <artifactId>spring-boot-starter-validation</artifactId>
       </dependency>
+
+      <!-- OCR -->
+      <dependency>
+          <groupId>net.sourceforge.tess4j</groupId>
+          <artifactId>tess4j</artifactId>
+          <version>5.9.0</version>
+      </dependency>
+
+      <!-- PDF识别， 再调用OCR -->
+      <dependency>
+          <groupId>org.apache.pdfbox</groupId>
+          <artifactId>pdfbox</artifactId>
+          <version>2.0.30</version>
+      </dependency>
   </dependencies>
 
     <build>
