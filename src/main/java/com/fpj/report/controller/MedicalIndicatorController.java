@@ -105,4 +105,23 @@ public class MedicalIndicatorController {
 
         return ResultVO.success("服务正常", null);
     }
+
+    @GetMapping("/group")
+    @Operation(summary = "指标分组列表", description = "指标分组列表")
+    public ResponseEntity<ResultVO<List<String>>> getGroupList(@RequestParam(required = false) String group) {
+        log.info("查询指标分组列表接口被调用");
+
+        List<String> groupList = medicalIndicatorService.getGroupList(group);
+        return ResponseEntity.ok(ResultVO.success("查询成功", groupList));
+    }
+
+    @GetMapping("/indicatorList")
+    @Operation(summary = "指标列表", description = "指标列表")
+    public ResponseEntity<ResultVO<List<String>>> getList(@RequestParam(required = false) String group,
+                                                          @RequestParam(required = false) String name) {
+        log.info("查询指标列表接口被调用");
+
+        List<String> indicatorList = medicalIndicatorService.getIndicatorList(group, name);
+        return ResponseEntity.ok(ResultVO.success("查询成功", indicatorList));
+    }
 }

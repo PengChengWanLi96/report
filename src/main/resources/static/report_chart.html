@@ -39,6 +39,7 @@
             display: inline-block;
             margin-right: 15px;
             margin-bottom: 10px;
+            position: relative;
         }
         .form-group label {
             display: block;
@@ -49,6 +50,7 @@
             padding: 8px;
             border: 1px solid #ddd;
             border-radius: 4px;
+            width: 200px;
         }
         .search-btn {
             background-color: #4CAF50;
@@ -117,6 +119,42 @@
             padding: 50px;
             color: #666;
         }
+        /* 下拉搜索框样式 */
+        .dropdown-container {
+            position: relative;
+            display: inline-block;
+            width: 200px;
+        }
+        .dropdown-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-top: none;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+        .dropdown-list.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 8px;
+            cursor: pointer;
+        }
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
 <body>
@@ -134,12 +172,18 @@
             <div class="form-row">
                 <div class="form-group">
                     <label for="checkGroup">检查项目:</label>
-                    <input type="text" id="checkGroup" name="checkGroup" placeholder="请输入检查项目">
+                    <div class="dropdown-container" id="checkGroupDropdown">
+                        <input type="text" id="checkGroup" name="checkGroup" class="dropdown-input" placeholder="请选择或输入检查项目">
+                        <div class="dropdown-list" id="checkGroupList"></div>
+                    </div>
                 </div>
 
                 <div class="form-group">
                     <label for="labIndicator">指标名称*:</label>
-                    <input type="text" id="labIndicator" name="labIndicator" placeholder="请输入指标名称" required>
+                    <div class="dropdown-container" id="labIndicatorDropdown">
+                        <input type="text" id="labIndicator" name="labIndicator" class="dropdown-input" placeholder="请选择或输入指标名称" required>
+                        <div class="dropdown-list" id="labIndicatorList"></div>
+                    </div>
                 </div>
             </div>
 
@@ -176,6 +220,8 @@
 <script>
     let currentChart = null;
     let currentChartType = 'line';
+    let checkGroupOptions = [];
+    let labIndicatorOptions = [];
 
     // 页面加载完成后自动查询数据
     document.addEventListener('DOMContentLoaded', function() {
@@ -186,6 +232,177 @@
 
         document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
         document.getElementById('endDate').valueAsDate = today;
+
+        // 初始化检查项目下拉框
+        initCheckGroupDropdown();
+    });
+
+    // 初始化检查项目下拉框
+    async function initCheckGroupDropdown() {
+        try {
+            const response = await fetch('/api/medical_indicators/group');
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.code === 200) {
+                checkGroupOptions = result.data || [];
+                setupDropdown('checkGroup', checkGroupOptions);
+            }
+        } catch (error) {
+            console.error('获取检查项目列表失败:', error);
+        }
+    }
+
+    // 初始化指标名称下拉框
+    async function initLabIndicatorDropdown(group) {
+        if (!group) return;
+
+        try {
+            const response = await fetch(`/api/medical_indicators/indicatorList?group=${encodeURIComponent(group)}`);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.code === 200) {
+                labIndicatorOptions = result.data || [];
+                setupDropdown('labIndicator', labIndicatorOptions);
+            }
+        } catch (error) {
+            console.error('获取指标名称列表失败:', error);
+        }
+    }
+
+    // 设置下拉框
+    function setupDropdown(inputId, options) {
+        const inputElement = document.getElementById(inputId);
+        const listElement = document.getElementById(inputId + 'List');
+
+        // 清空列表
+        listElement.innerHTML = '';
+
+        // 添加选项
+        options.forEach(option => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'dropdown-item';
+            itemElement.textContent = option;
+            itemElement.onclick = function() {
+                inputElement.value = option;
+                listElement.classList.remove('show');
+                // 如果是检查项目，则更新指标名称下拉框
+                if (inputId === 'checkGroup') {
+                    initLabIndicatorDropdown(option);
+                }
+            };
+            listElement.appendChild(itemElement);
+        });
+    }
+
+    // 过滤下拉选项
+    function filterDropdown(inputId, options) {
+        const inputElement = document.getElementById(inputId);
+        const listElement = document.getElementById(inputId + 'List');
+        const filter = inputElement.value.toLowerCase();
+
+        // 清空列表
+        listElement.innerHTML = '';
+
+        // 过滤并添加选项
+        const filteredOptions = options.filter(option =>
+            option.toLowerCase().includes(filter)
+        );
+
+        filteredOptions.forEach(option => {
+            const itemElement = document.createElement('div');
+            itemElement.className = 'dropdown-item';
+            itemElement.textContent = option;
+            itemElement.onclick = function() {
+                inputElement.value = option;
+                listElement.classList.remove('show');
+                // 如果是检查项目，则更新指标名称下拉框
+                if (inputId === 'checkGroup') {
+                    initLabIndicatorDropdown(option);
+                }
+            };
+            listElement.appendChild(itemElement);
+        });
+
+        // 显示或隐藏列表（修复：即使没有输入也显示完整列表）
+        if (filteredOptions.length > 0 || !inputElement.value) {
+            listElement.classList.add('show');
+        } else {
+            listElement.classList.remove('show');
+        }
+    }
+
+    // 为检查项目输入框添加焦点事件监听器（修复：无输入时显示完整列表）
+    document.getElementById('checkGroup').addEventListener('focus', function() {
+        // 显示完整列表
+        setupDropdown('checkGroup', checkGroupOptions);
+        document.getElementById('checkGroupList').classList.add('show');
+    });
+
+    // 为检查项目输入框添加事件监听器
+    document.getElementById('checkGroup').addEventListener('input', function() {
+        filterDropdown('checkGroup', checkGroupOptions);
+        // 清空指标名称
+        document.getElementById('labIndicator').value = '';
+    });
+
+    // 为指标名称输入框添加焦点事件监听器（修复：无输入时显示完整列表）
+    document.getElementById('labIndicator').addEventListener('focus', function() {
+        const group = document.getElementById('checkGroup').value;
+        if (group) {
+            // 显示完整列表
+            setupDropdown('labIndicator', labIndicatorOptions);
+            document.getElementById('labIndicatorList').classList.add('show');
+        }
+    });
+
+    // 为指标名称输入框添加事件监听器
+    document.getElementById('labIndicator').addEventListener('input', function() {
+        const group = document.getElementById('checkGroup').value;
+        if (group) {
+            // 延迟执行以避免频繁请求
+            setTimeout(() => {
+                fetchFilteredLabIndicators(group, this.value);
+            }, 300);
+        }
+    });
+
+    // 获取过滤后的指标名称（修复：正确处理请求和响应）
+    async function fetchFilteredLabIndicators(group, name) {
+        try {
+            let url = `/api/medical_indicators/indicatorList?group=${encodeURIComponent(group)}`;
+            // 只有当name有值时才添加name参数
+            if (name) {
+                url += `&name=${encodeURIComponent(name)}`;
+            }
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.code === 200) {
+                labIndicatorOptions = result.data || [];
+                filterDropdown('labIndicator', labIndicatorOptions);
+            }
+        } catch (error) {
+            console.error('获取指标名称列表失败:', error);
+        }
+    }
+
+    // 点击其他地方隐藏下拉列表
+    document.addEventListener('click', function(event) {
+        if (!event.target.closest('.dropdown-container')) {
+            document.querySelectorAll('.dropdown-list').forEach(list => {
+                list.classList.remove('show');
+            });
+        }
     });
 
     // 查询报告数据
@@ -359,6 +576,10 @@
 
         document.getElementById('startDate').valueAsDate = thirtyDaysAgo;
         document.getElementById('endDate').valueAsDate = today;
+
+        // 重置下拉框选项
+        document.getElementById('checkGroupList').classList.remove('show');
+        document.getElementById('labIndicatorList').classList.remove('show');
     }
 </script>
 </body>

@@ -54,4 +54,15 @@ public interface MedicalIndicatorService  extends IService<MedicalIndicator> {
      * 根据结果状态查询
      */
     List<MedicalIndicatorVO> getMedicalIndicatorsByStatus(String resultStatus);
+
+
+    /**
+     * 获取分组列表
+     */
+    List<String> getGroupList(String group);
+
+    /**
+     * 获取指标列表
+     */
+    List<String> getIndicatorList(String group, String indicator);
 }

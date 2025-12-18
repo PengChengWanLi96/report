@@ -296,4 +296,27 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
             return false;
         }
     }
+
+    @Override
+    public List<String> getGroupList(String group) {
+        LambdaQueryWrapper<MedicalIndicator> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(group)) {
+            queryWrapper.like(MedicalIndicator::getCheckGroup, group.toLowerCase());
+        }
+        List<MedicalIndicator> medicalIndicators = this.baseMapper.selectList(queryWrapper);
+        return medicalIndicators.stream().map(MedicalIndicator::getCheckGroup).distinct().toList();
+    }
+
+    @Override
+    public List<String> getIndicatorList(String group, String indicator) {
+        LambdaQueryWrapper<MedicalIndicator> queryWrapper = new LambdaQueryWrapper<>();
+        if (StringUtils.hasText(group)) {
+            queryWrapper.like(MedicalIndicator::getCheckGroup, group.toLowerCase());
+        }
+        if (StringUtils.hasText(group)) {
+            queryWrapper.like(MedicalIndicator::getCheckGroup, group.toLowerCase());
+        }
+        List<MedicalIndicator> medicalIndicators = this.baseMapper.selectList(queryWrapper);
+        return medicalIndicators.stream().map(MedicalIndicator::getLabIndicator).distinct().toList();
+    }
 }
