@@ -94,8 +94,7 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
             entity.setUpdateTime(LocalDateTime.now()); //  关键：手动设置更新时间
 
             // 2. 执行更新（代替 removeById）
-            this.updateById(entity);
-            return this.removeById(id);
+            return this.updateById(entity);
         } catch (Exception e) {
             log.error("删除医疗指标失败, ID: {}", id, e);
             return false;
