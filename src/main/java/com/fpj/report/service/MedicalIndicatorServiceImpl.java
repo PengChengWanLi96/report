@@ -30,6 +30,7 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
         log.info("新增医疗指标: {}", addDTO.getLabIndicator());
 
         try {
+            checkExist(addDTO);
             MedicalIndicator indicator = new MedicalIndicator();
             BeanUtils.copyProperties(addDTO, indicator);
 
@@ -53,6 +54,30 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
             log.error("新增医疗指标失败: {}", e.getMessage());
             return false;
         }
+    }
+
+    private void checkExist(MedicalIndicatorAddDTO addDTO) throws Exception {
+        LambdaQueryWrapper<MedicalIndicator> queryWrapper =  new LambdaQueryWrapper<>();
+        queryWrapper.eq(MedicalIndicator::getLabIndicator, addDTO.getLabIndicator());
+        queryWrapper.eq(MedicalIndicator::getCheckDate, addDTO.getCheckGroup());
+
+        List<MedicalIndicator> medicalIndicatorList = this.baseMapper.selectList(queryWrapper);
+        if (!medicalIndicatorList.isEmpty()) {
+            throw new Exception(
+                    String.format("已经存在相同的记录，不能重复添加，指标名称：%s， 检查日期：%s",
+                            addDTO.getLabIndicator(), addDTO.getCheckDate()));
+        }
+        return;
+
+    }
+
+    @Override
+    public boolean batchAddMedicalIndicators(List<MedicalIndicatorAddDTO> addDTOs) {
+        if (addDTOs.isEmpty()) {
+            return false;
+        }
+        addDTOs.forEach(this::addMedicalIndicator);
+        return true;
     }
 
     @Override
@@ -112,7 +137,7 @@ public class MedicalIndicatorServiceImpl extends ServiceImpl<MedicalIndicatorMap
         }
         try {
             ids.forEach(this::deleteMedicalIndicator);
-            return this.removeByIds(ids);
+            return true;
         } catch (Exception e) {
             log.error("批量删除医疗指标失败", e);
             return false;

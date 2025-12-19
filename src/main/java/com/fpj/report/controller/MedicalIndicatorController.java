@@ -39,6 +39,20 @@ public class MedicalIndicatorController {
         }
     }
 
+    @PostMapping("/batchAdd")
+    @Operation(summary = "批量新增医疗指标", description = "批量创建新的医疗检查指标记录")
+    public ResponseEntity<ResultVO<Long>> batchAddMedicalIndicator(
+            @Validated @RequestBody List<MedicalIndicatorAddDTO> addDTOs) {
+        log.info("新增医疗指标接口被调用");
+
+        boolean result = medicalIndicatorService.batchAddMedicalIndicators(addDTOs);
+        if (result) {
+            return ResponseEntity.ok(ResultVO.success("新增成功", null));
+        } else {
+            return ResponseEntity.badRequest().body(ResultVO.error("新增失败"));
+        }
+    }
+
     @PutMapping
     @Operation(summary = "修改医疗指标", description = "更新现有的医疗检查指标记录")
     public ResponseEntity<ResultVO<Void>> updateMedicalIndicator(

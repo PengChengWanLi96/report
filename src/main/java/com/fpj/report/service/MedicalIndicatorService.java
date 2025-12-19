@@ -15,6 +15,8 @@ public interface MedicalIndicatorService  extends IService<MedicalIndicator> {
      */
     boolean addMedicalIndicator(MedicalIndicatorAddDTO addDTO);
 
+    boolean batchAddMedicalIndicators(List<MedicalIndicatorAddDTO> addDTOs);
+
     /**
      * 修改医疗指标
      */
