@@ -1,3 +1,8 @@
+-- 创建数据库
+CREATE DATABASE IF NOT EXISTS report
+  DEFAULT CHARACTER SET utf8mb4
+  DEFAULT COLLATE utf8mb4_general_ci;
+
 -- 创建医疗指标表
 CREATE TABLE IF NOT EXISTS `medical_indicator` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '主键ID',
