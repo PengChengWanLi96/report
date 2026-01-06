@@ -28,7 +28,7 @@ CREATE TABLE IF NOT EXISTS `medical_indicator` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医疗检查指标表';
 
 -- 医院信息表
-CREATE TABLE `hospital` (
+CREATE TABLE IF NOT EXISTS `hospital` (
   `hospital_id` bigint NOT NULL AUTO_INCREMENT COMMENT '医院ID',
   `hospital_name` varchar(100) NOT NULL COMMENT '医院名称',
   `hospital_abbr` varchar(50) NOT NULL COMMENT '医院简称',
@@ -44,3 +44,44 @@ CREATE TABLE `hospital` (
   KEY `idx_hospital_name` (`hospital_name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医院信息表';
 
+
+-- 检查项目表
+CREATE TABLE IF NOT EXISTS `examination_item` (
+  `item_id` bigint NOT NULL AUTO_INCREMENT COMMENT '检查项目ID',
+  `item_name` varchar(100) NOT NULL COMMENT '检查项目名称',
+  `hospital_id` bigint NOT NULL COMMENT '医院ID',
+  `description` text COMMENT '描述',
+  `category` varchar(50) DEFAULT NULL COMMENT '检查类别',
+  `price` decimal(10,2) DEFAULT NULL COMMENT '价格',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除标记',
+  PRIMARY KEY (`item_id`),
+  KEY `idx_hospital_id` (`hospital_id`),
+  KEY `idx_category` (`category`),
+  KEY `idx_item_name` (`item_name`),
+  CONSTRAINT `fk_examination_hospital` FOREIGN KEY (`hospital_id`) REFERENCES `hospital` (`hospital_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='检查项目表';
+
+
+-- 检查指标项表
+CREATE TABLE IF NOT EXISTS `indicator_item` (
+  `indicator_id` bigint NOT NULL AUTO_INCREMENT COMMENT '指标项ID',
+  `indicator_name` varchar(100) NOT NULL COMMENT '指标项名称',
+  `indicator_abbr` varchar(50) NOT NULL COMMENT '指标项简称',
+  `examination_item_id` bigint NOT NULL COMMENT '检查项目ID',
+  `report_date` date NOT NULL COMMENT '报告日期',
+  `description` text COMMENT '描述',
+  `unit` varchar(20) DEFAULT NULL COMMENT '单位',
+  `reference_range` varchar(100) DEFAULT NULL COMMENT '参考范围',
+  `normal_min` decimal(10,2) DEFAULT NULL COMMENT '正常值下限',
+  `normal_max` decimal(10,2) DEFAULT NULL COMMENT '正常值上限',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除标记',
+  PRIMARY KEY (`indicator_id`),
+  KEY `idx_examination_item_id` (`examination_item_id`),
+  KEY `idx_report_date` (`report_date`),
+  KEY `idx_indicator_name` (`indicator_name`),
+  CONSTRAINT `fk_indicator_examination` FOREIGN KEY (`examination_item_id`) REFERENCES `examination_item` (`item_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='检查指标项表';
