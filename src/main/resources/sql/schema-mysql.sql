@@ -26,3 +26,21 @@ CREATE TABLE IF NOT EXISTS `medical_indicator` (
   KEY `idx_create_time` (`create_time`),
   KEY `idx_result_status` (`result_status`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医疗检查指标表';
+
+-- 医院信息表
+CREATE TABLE `hospital` (
+  `hospital_id` bigint NOT NULL AUTO_INCREMENT COMMENT '医院ID',
+  `hospital_name` varchar(100) NOT NULL COMMENT '医院名称',
+  `hospital_abbr` varchar(50) NOT NULL COMMENT '医院简称',
+  `address` varchar(200) NOT NULL COMMENT '地址',
+  `phone` varchar(20) DEFAULT NULL COMMENT '联系电话',
+  `level` varchar(20) DEFAULT NULL COMMENT '医院等级',
+  `description` text COMMENT '描述',
+  `create_time` datetime DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `deleted` tinyint DEFAULT '0' COMMENT '逻辑删除标记',
+  PRIMARY KEY (`hospital_id`),
+  UNIQUE KEY `uk_hospital_abbr` (`hospital_abbr`),
+  KEY `idx_hospital_name` (`hospital_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='医院信息表';
+
