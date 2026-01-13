@@ -1,10 +1,11 @@
-package com.fpj.report.service;
+package com.fpj.report.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.fpj.report.domain.Hospital;
 import com.fpj.report.repository.HospitalMapper;
+import com.fpj.report.service.HospitalService;
 import org.springframework.stereotype.Service;
 import java.util.List;
 

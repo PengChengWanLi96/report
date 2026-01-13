@@ -1,10 +1,11 @@
-package com.fpj.report.service;
+package com.fpj.report.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fpj.report.domain.MedicalIndicator;
 import com.fpj.report.repository.MedicalIndicatorMapper;
+import com.fpj.report.service.MedicalIndicatorService;
 import com.fpj.report.service.dto.MedicalIndicatorAddDTO;
 import com.fpj.report.service.dto.MedicalIndicatorQueryDTO;
 import com.fpj.report.service.dto.MedicalIndicatorUpdateDTO;
